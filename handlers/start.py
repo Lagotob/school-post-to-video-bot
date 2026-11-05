@@ -3,6 +3,11 @@
 Uses target-audience copywriting for students in Uzbek.
 """
 
+# -*- coding: utf-8 -*-
+
+from aiogram import Router
+# qolgan kodlar shu yerda davom etadi...
+
 from __future__ import annotations
 
 from aiogram import Router, types
