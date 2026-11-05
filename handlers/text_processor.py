@@ -68,6 +68,8 @@ def split_text(text: str, max_words: int = 4) -> List[str]:
         A list of cleaned, non-empty text segments, capped at
         :data:`config.MAX_SEGMENTS`.
     """
+    if max_words < 1:
+        raise ValueError("max_words must be at least 1")
     if not text:
         return []
 

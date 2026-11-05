@@ -14,8 +14,10 @@ import aiosqlite
 
 from config import LOGOS_DIR, TMP_DIR
 
-# Database file location. Kept in the project root by default.
-DB_PATH: str = os.getenv("DB_PATH", "bot_data.db")
+# Database file location. Resolve the default relative to this file so startup
+# does not depend on the process working directory.
+_PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH: str = os.getenv("DB_PATH", os.path.join(_PROJECT_DIR, "bot_data.db"))
 
 
 async def init_db() -> None:
@@ -24,7 +26,10 @@ async def init_db() -> None:
     Safe to call repeatedly on every bot startup — it uses ``CREATE TABLE
     IF NOT EXISTS`` so it never drops existing data.
     """
-    # Make sure the directories the bot relies on exist before any writes.
+    # Make sure the database and media directories exist before any writes.
+    db_directory = os.path.dirname(DB_PATH)
+    if db_directory:
+        os.makedirs(db_directory, exist_ok=True)
     for directory in (LOGOS_DIR, TMP_DIR):
         os.makedirs(directory, exist_ok=True)
 
@@ -68,7 +73,7 @@ async def upsert_user(
             """
             INSERT INTO users (chat_id, username, first_name, last_name, is_admin)
             VALUES (?, ?, ?, ?, ?)
-            ON CON(chat_id) DO UPDATE SET
+            ON CONFLICT(chat_id) DO UPDATE SET
                 username    = excluded.username,
                 first_name  = excluded.first_name,
                 last_name   = excluded.last_name,
@@ -125,7 +130,7 @@ async def save_logo_path(chat_id: int, logo_path: str, logo_file_id: Optional[st
             """
             INSERT INTO organization_configs (chat_id, logo_path, logo_file_id)
             VALUES (?, ?, ?)
-            ON CON(chat_id) DO UPDATE SET
+            ON CONFLICT(chat_id) DO UPDATE SET
                 logo_path    = excluded.logo_path,
                 logo_file_id = excluded.logo_file_id,
                 updated_at   = datetime('now')

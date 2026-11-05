@@ -1,0 +1,13 @@
+.claude/
+.git/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite*
+.venv/
+venv/
+tmp/
+logos/[0-9]*.png

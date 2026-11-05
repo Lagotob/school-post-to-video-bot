@@ -14,6 +14,16 @@ from dotenv import load_dotenv
 # Load variables from a .env file if one is present in the working directory.
 load_dotenv()
 
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _configured_path(name: str, default: str) -> str:
+    """Return an environment-configured path, rooted at the project if relative."""
+    path = os.getenv(name, default)
+    if not os.path.isabs(path):
+        path = os.path.join(PROJECT_DIR, path)
+    return os.path.normpath(path)
+
 
 def _parse_admin_ids(raw: str | None) -> List[int]:
     """Parse a comma/newline separated list of Telegram IDs into ``int``."""
@@ -34,25 +44,33 @@ def _parse_admin_ids(raw: str | None) -> List[int]:
 
 # Telegram Bot API token. Required — the bot will refuse to start without it.
 BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+WEBHOOK_BASE_URL: str = os.getenv("WEBHOOK_BASE_URL", "").rstrip("/")
+WEBHOOK_PATH: str = os.getenv("WEBHOOK_PATH", "/telegram")
+WEBHOOK_SECRET_TOKEN: str = os.getenv("WEBHOOK_SECRET_TOKEN", "")
+PORT: int = int(os.getenv("PORT", "10000"))
 
 # Optional list of administrator user IDs (Telegram chat ids).
 # Supports comma or newline separated values, e.g. ``123,456``.
 ADMIN_IDS: List[int] = _parse_admin_ids(os.getenv("ADMIN_IDS"))
 
 # Directory used for persisted media assets (logos, default background, etc.).
-ASSETS_DIR: str = os.getenv("ASSETS_DIR", "assets")
+ASSETS_DIR: str = _configured_path("ASSETS_DIR", "logos")
 
 # Directory used for uploaded custom logos.
-LOGOS_DIR: str = os.getenv("LOGOS_DIR", "logos")
+LOGOS_DIR: str = _configured_path("LOGOS_DIR", "logos")
 
 # Directory used for temporary render outputs before delivery.
-TMP_DIR: str = os.getenv("TMP_DIR", "tmp")
+TMP_DIR: str = _configured_path("TMP_DIR", "tmp")
 
 # Default assets shipped with the project. They live inside ``ASSETS_DIR`` but
 # can be overridden through environment variables if a deployment ships custom
 # branding.
-DEFAULT_BG_IMAGE: str = os.getenv("DEFAULT_BG_IMAGE", "assets/default_bg.jpg")
-DEFAULT_LOGO_IMAGE: str = os.getenv("DEFAULT_LOGO_IMAGE", "assets/default_logo.png")
+DEFAULT_BG_IMAGE: str = _configured_path(
+    "DEFAULT_BG_IMAGE", os.path.join(ASSETS_DIR, "default_bg.jpg")
+)
+DEFAULT_LOGO_IMAGE: str = _configured_path(
+    "DEFAULT_LOGO_IMAGE", os.path.join(ASSETS_DIR, "default_logo.png")
+)
 
 # Video rendering parameters (vertical mobile format).
 VIDEO_WIDTH: int = int(os.getenv("VIDEO_WIDTH", "1080"))
